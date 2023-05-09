@@ -1,15 +1,8 @@
-import {
-  Box,
-  Button,
-  Divider,
-  Icon,
-  IconButton,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Divider, IconButton, Typography } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
-import RemoveIcon from "@mui/icons-material";
+import RemoveIcon from "@mui/icons-material/Remove";
 import styled from "@emotion/styled";
 import { shades } from "../../theme";
 import {
@@ -30,14 +23,14 @@ const CartMenu = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const cart = useSelector((state) => state.cart.cart);
-  const setIsCartOpen = useSelector((state) => state.cart.setIsCartOpen);
+  const isCartOpen = useSelector((state) => state.cart.isCartOpen);
   const totalPrice = cart.reduce((total, item) => {
     return total + item.count * item.attributes.price;
   }, 0);
 
   return (
     <Box // OVERLAY
-      display={setIsCartOpen ? "block" : "none"}
+      display={isCartOpen ? "block" : "none"}
       backgroundColor="rgba(0,0,0,0.4)"
       position="fixed"
       zIndex="10"
@@ -93,7 +86,7 @@ const CartMenu = () => {
                     </FlexBox>
                     <Typography>{item.attributes.shortDescription}</Typography>
                     {/* AMOUNT */}
-                    <FlexBox m="15px">
+                    <FlexBox m="15px 0">
                       <Box
                         display="flex"
                         alignItems="center"
