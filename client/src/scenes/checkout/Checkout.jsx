@@ -6,6 +6,10 @@ import * as yup from "yup";
 import Shipping from "./Shipping";
 import Payment from "./Payment";
 import { shades } from "../../theme";
+import { loadStripe } from "@stripe/stripe-js";
+const stripePromise = loadStripe(
+  "pk_test_51MsXKiDUYnj70S4YYGWKGa5HSXwuFgl1EflMBFrpoRGJPIWNUAEUL36W3eCHjX0US0AFU3wqoO7cb6x2rYcTSNPV00tS9Mxwzq"
+);
 
 const initialValues = {
   billingAddress: {
@@ -106,11 +110,33 @@ const Checkout = () => {
 
     actions.setTouched({});
   };
-  async function makePayment(values) {}
+  async function makePayment(values) {
+    const stripe = await stripePromise;
+    const requestBody = {
+      userName: [
+        values.shippingAddress.firstName,
+        values.shippingAddress.lastName,
+      ].join(" "),
+      email: values.email,
+      products: cart.map(({ id, count }) => ({
+        id,
+        count,
+      })),
+    };
+    const response = await fetch("http://localhost:1337/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody),
+    });
+    const session = await response.json();
+    await stripe.redirectToCheckout({
+      sessionId: session.id,
+    });
+  }
 
   return (
     <Box width="80%" m="100px auto">
-      <Stepper active={activeStep} sx={{ m: "20px 0" }}>
+      <Stepper activeStep={activeStep} sx={{ m: "20px 0" }}>
         <Step>
           <StepLabel>Billing</StepLabel>
         </Step>
@@ -155,7 +181,7 @@ const Checkout = () => {
                 />
               )}
               <Box display="flex" justifyContent="space-between" gap="50px">
-                {isSecondStep && (
+                {!isFirstStep && (
                   <Button
                     fullWidth
                     color="primary"
@@ -184,9 +210,8 @@ const Checkout = () => {
                     borderRadius: 0,
                     padding: "15px 40px",
                   }}
-                  onClick={() => setActiveStep(activeStep - 1)}
                 >
-                  {isFirstStep ? "Next" : "Place Order"}
+                  {!isSecondStep ? "Next" : "Place Order"}
                 </Button>
               </Box>
             </form>
